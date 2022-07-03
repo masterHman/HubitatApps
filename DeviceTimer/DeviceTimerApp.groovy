@@ -1,9 +1,9 @@
 definition(
-    name: "Device Timer App",
+    name: "Device Timer",
     namespace: "masterHman",
     author: "Howard Roberson",
     description: "Automatically resets devices to preferred on/off setting after specified amount of time",
-    importUrl: "",
+    importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerApp.groovy",
     iconUrl: "",
     iconX2Url: "",
     singleInstance: true
@@ -37,16 +37,12 @@ def mainPage() {
         if(state.appInstalled == 'COMPLETE'){
             section("Instructions:", hideable: true, hidden: true) {
                 paragraph "<b>Information</b>"
-                paragraph "Simple way to monitor if your hub is slowing down or not."
+                paragraph "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
             }
             section(getFormat("header-green", "${getImage("Blank")}"+" Child Apps")) {
-                app(name: "anyOpenApp", appName: "Hub Watchdog Child", namespace: "BPTWorld", title: "<b>Add a new 'Hub Watchdog' child</b>", multiple: true)
-                app(name: "anyOpenApp", appName: "Hub Watchdog Examiner Child", namespace: "BPTWorld", title: "<b>Add a new 'Hub Watchdog Examiner' child</b>", multiple: true)
+                app(name: "anyOpenApp", appName: "Device Timer Configuration", namespace: "masterHman", title: "<b>Add a new timer configuration</b>", multiple: true)
             }
-            
-            section(getFormat("header-green", "${getImage("Blank")}"+" General")) {
-                label title: "Enter a name for parent app (optional)", required: false
-            }
+           
             display2()
         }
     }
@@ -80,7 +76,6 @@ def getFormat(type, myText="") {			// Modified from @Stephack Code
 }
 
 def display() {
-    setVersion()
     getHeaderAndFooter()
     theName = app.label
     if(theName == null || theName == "") theName = "New Child App"
