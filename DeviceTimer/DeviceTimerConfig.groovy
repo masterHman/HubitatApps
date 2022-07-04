@@ -47,7 +47,8 @@ def mainPage() {
                 input(name: "isMasterOn", type: "bool", title: "Is turned <b>" + ((isMasterOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)            
             }          
         }
-        section() {
+
+        section("Logging:", hideable: true, hidden: true) {
             input(name: "isInfoLogging", type: "bool", defaultValue: "true", title: "Enable Info (descriptionText) Logging")  
             input(name: "isDebugLogging", type: "bool", defaultValue: "false", title: "Enable Debug Logging")            
         }
@@ -94,12 +95,12 @@ def scheduleHandler() {
 }
 
 private logDebug(msg) {
-    if (debugEnable) 
+    if (isDebugLogging) 
         log.debug(msg)
 }
 
 private logInfo(msg) {
-    if (infoEnabled) 
+    if (isInfoLogging) 
         log.debug(msg)
 }
 
