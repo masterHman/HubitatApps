@@ -36,21 +36,34 @@ def initialize() {
 def mainPage() {
     dynamicPage(name: "") {
         initialize()    
-        if(installCheck()) {
-            section(getFormattedText("config-label", "Configurations")) {
-                app(name: "openApp", appName: state.configAppName, namespace: state.namespace, title:"${getFormattedText("add-config", state.configAppTitle)}", multiple: true, )
+        if(isInstalled()) {
+            section() {
+            paragraph(getFormattedText("config-label", "Configurations"))
+                app(name: "openApp", appName: state.configAppName, namespace: state.namespace, title:"${getFormattedText("add-config", state.configAppTitle)}", multiple: true)
             }
 
-            section("Logging:", hideable: true, hidden: true) {
-                input(name: "isInfoLogging", type: "bool", defaultValue: "true", title: "Enable Info (descriptionText) Logging")  
-                input(name: "isDebugLogging", type: "bool", defaultValue: "false", title: "Enable Debug Logging")            
-            }
+            addLoggingSection()
+            addVersionSection()
         }
         else{
             showCompleteInstallMsg()
         }
     }
 }
+
+def addLoggingSection(){
+    section("Logging:", hideable: true, hidden: true) {
+        input(name: "isInfoLogging", type: "bool", defaultValue: "true", title: "Enable Info (descriptionText) Logging")  
+        input(name: "isDebugLogging", type: "bool", defaultValue: "false", title: "Enable Debug Logging")            
+    }
+}
+
+def addVersionSection(){
+    section() {
+        paragraph(getFormattedText("version",state.version))
+    }
+}
+
 
 def loadSettings(){
     def params = [
@@ -78,7 +91,7 @@ def loadSettings(){
     }
 }
 
-def boolean installCheck(){
+def boolean isInstalled(){
     state.appInstalled = app.getInstallationState() 
     if(state.appInstalled != 'COMPLETE'){
         logDebug( "${app.label} NOT Installed!")
@@ -99,7 +112,7 @@ def getIcon(type) {
 }
 
 def getFormattedText(type, innerText="") {
-    if(type == "config-label") return "<div style='font-weight: bold;background-color:#81BC00;min-width:50px;width:50%'>${innerText}</div>"
+    if(type == "config-label") return "<div style='font-weight: bold;background-color:#81BC00;'>${innerText}</div>"
     if(type == "add-config") return "${getIcon('Add')} ${innerText}"
     if(type == "line") return "<hr style='background-color:#1A77C9; height: 1px; border: 0;'>"
     if(type == "title") return "<h2 style='color:#1A77C9;font-weight: bold'>${innerText}</h2>"
