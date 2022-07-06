@@ -118,7 +118,7 @@ private String getOnOffValue(Boolean isSwitchOn){
 }
 
 private toggleDevices(devicesToToggle){
-    logDebug("toggleDevices: devicesToToggle:${devicesToToggle}")
+    logInfo("Toggling Devices: ${devicesToToggle}")
     if (whenDeviceIsTurnedOn) {
         devicesToToggle*.off()
     }
