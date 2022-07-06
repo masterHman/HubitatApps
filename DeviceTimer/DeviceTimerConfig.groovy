@@ -75,6 +75,9 @@ def mainPage() {
 
 
 def onDeviceToggle(evt) {
+    if (overrideSwitch.id == evt.device.id)
+        return
+    
     logDeviceToggle(evt)
     
     def desiredValue = getOnOffValue(whenDeviceIsTurnedOn)
@@ -84,21 +87,23 @@ def onDeviceToggle(evt) {
     }else {
         logDebug("Device id:[${evt.device.id}] was turned [${evt.value}]. Removing from device list.") 
         state.deviceList.remove(evt.device.id)
-    }
-    
+    }    
 }
 
 def scheduleHandler() {
     def expiredDevices = state.deviceList.findAll { it.value < now() }
     def devicesToToggle = configuredDeviceList.findAll { device -> expiredDevices.any { it.key == device.id } }
 
-    logDebug ("scheduleHandler now:${now()} active/state deviceList:${state.deviceList} expiredDevices:${expiredDevices} devicesToToggle:${devicesToToggle}")
+    logDebug("scheduleHandler now:${now()} active/state deviceList:${state.deviceList} expiredDevices:${expiredDevices} devicesToToggle:${devicesToToggle}")
+
+    if(expiredDevices.isEmpty())
+        return
 
     if (overrideSwitch){    
         def desiredOverrideValue = getOnOffValue(isOverrideSwitchOn)
         def overrideValue = overrideSwitch.latestValue("switch") 
         
-        logDebug("Override Switch: '${overrideSwitch?.displayName}' is " + overrideSwitch.latestValue("switch") )
+        logDebug("Override Switch: '${overrideSwitch?.displayName}' is " + overrideValue + " must be " + desiredOverrideValue)
         
         if(overrideValue == desiredOverrideValue){ 
             toggleDevices(devicesToToggle)
@@ -106,22 +111,21 @@ def scheduleHandler() {
     }else {
         toggleDevices(devicesToToggle)
     }
-
-    state.deviceList -= actionList
 }
 
 private String getOnOffValue(Boolean isSwitchOn){
     return isSwitchOn == true ? "on" : "off"
 }
 
-private toggleDevices(Map devicesToToggle){
-    logDebug ("toggleDevices: devicesToToggle:${devicesToToggle}")
+private toggleDevices(devicesToToggle){
+    logDebug("toggleDevices: devicesToToggle:${devicesToToggle}")
     if (whenDeviceIsTurnedOn) {
         devicesToToggle*.off()
     }
     else {
         devicesToToggle*.on()
     }
+    devicesToToggle.each{ device -> state.deviceList.remove(device.id) }    
 }
 
 
@@ -132,7 +136,7 @@ private logDebug(msg) {
 
 private logInfo(msg) {
     if (isInfoLogging) 
-        log.debug(msg)
+        log.info(msg)
 }
 
 private logDeviceToggle(evt){    
