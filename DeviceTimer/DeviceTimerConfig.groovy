@@ -1,5 +1,7 @@
 
 import java.text.SimpleDateFormat
+#include TrevTelSolutions.Logging
+#include TrevTelSolutions.Common
 
 definition(
     name: "Device Timer Configuration",
@@ -29,6 +31,7 @@ def updated() {
 
 private initialize() {
     logDebug("Initialize with settings: ${settings}")
+    loadSettings()
     state.deviceList = [:]
 
     subscribe(devices, "switch", onDeviceToggle)
@@ -73,6 +76,9 @@ def mainPage() {
     }
 }
 
+def loadSettings(){
+    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerConfigAppSettings.json")
+}
 
 def onDeviceToggle(evt) {
     if (overrideSwitch.id == evt.device.id)
@@ -126,17 +132,6 @@ private toggleDevices(devicesToToggle){
         devicesToToggle*.on()
     }
     devicesToToggle.each{ device -> state.deviceList.remove(device.id) }    
-}
-
-
-private logDebug(msg) {
-    if (isDebugLogging) 
-        log.debug(msg)
-}
-
-private logInfo(msg) {
-    if (isInfoLogging) 
-        log.info(msg)
 }
 
 private logDeviceToggle(evt){    

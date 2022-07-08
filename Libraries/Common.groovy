@@ -29,7 +29,7 @@ def getAppInfoFromUri(uri){
             title: resp.data.title,
             description: resp.data.description,
             childApp : [
-                name: resp.data.childApp.name
+                name: resp.data.childApp.name,
                 label: resp.data.childApp.label                
                 ]
             ]
