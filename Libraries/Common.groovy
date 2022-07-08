@@ -28,7 +28,10 @@ def getAppInfoFromUri(uri){
             namespace: resp.data.namespace,
             title: resp.data.title,
             description: resp.data.description,
-            childApp = [label: resp.data.childApp.label]
+            childApp : [
+                name: resp.data.childApp.name
+                label: resp.data.childApp.label                
+                ]
             ]
         }
     }
