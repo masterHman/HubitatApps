@@ -16,7 +16,7 @@ definition(
 )
 
 preferences {
-    page name: "mainPage", title: "Timer Configuration", install: true, uninstall: true
+    page name: "mainPage", title: "", install: true, uninstall: true
 }
 
 def installed() {
@@ -43,7 +43,7 @@ def mainPage() {
         loadSettings()
         if(isInstalled()) {
 
-            //addHeaderSection()              
+            addHeaderSection()              
             addBodySection()
             addLoggingSection()
             addFooterSection()

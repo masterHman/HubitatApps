@@ -28,12 +28,21 @@ def getAppInfoFromUri(uri){
             version: resp.data.version,
             namespace: resp.data.namespace,
             title: resp.data.title,
-            description: resp.data.description,
-            childApp : [
-                name: resp.data.childApp.name,
-                label: resp.data.childApp.label                
-                ]
+            description: resp.data.description
             ]
+
+            if(resp.data.childApp){
+                state.appInfo.childApp = [
+                    name: resp.data.childApp.name,
+                    label: resp.data.childApp.label                
+                ]
+            }
+            if(resp.data.parentApp){
+                state.appInfo.parentApp = [
+                    name: resp.data.parentApp.name,
+                    label: resp.data.parentApp.label                
+                ]
+            }
         }
     }
     catch (e) {
