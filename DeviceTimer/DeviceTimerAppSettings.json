@@ -1,0 +1,10 @@
+{
+  "name": "Device Timer",
+  "version": "1.0.0",
+  "namespace": "TrevTelSolutions",
+  "title": "Automatically resets devices to preferred on/off setting after specified amount of time.",
+  "description": "Add a new configuration for each on/off time out (e.g. 5 min off, 25 min on... etc.)",
+  "childApp": {
+    "label": "Create a new timer configuration"
+  }
+}
