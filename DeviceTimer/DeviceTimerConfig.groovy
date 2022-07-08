@@ -3,14 +3,14 @@ import java.text.SimpleDateFormat
 
 definition(
     name: "Device Timer Configuration",
-    namespace: "masterHman",
+    namespace: "TrevTelSolutions",
     author: "Howard Roberson",
     description: "Automatically resets devices to preferred on/off setting after specified amount of time",
     importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerConfig.groovy",
     iconUrl: "",
     iconX2Url: "",
     singleInstance: false,
-    parent: "masterHman:Device Timer"
+    parent: "TrevTelSolutions:Device Timer"
 )
 
 preferences {
