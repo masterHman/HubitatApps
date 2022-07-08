@@ -40,27 +40,27 @@ def mainPage() {
     dynamicPage(name: "") {
         initialize()    
         if(isInstalled()) {
+
+            addHeaderSection()  
             
             section() {
-            
-            addHeaderSection()   
-            
-            paragraph(getFormattedText(""))
                 app(name: "openApp", appName: state.appInfo.childApp.name, namespace: state.appInfo.namespace, title:"${getFormattedText("add-config", state.appInfo.childApp.label)}", multiple: true)
             }
 
             addLoggingSection()
+            addFooterSection()
         }
         else{
             showCompleteInstallMsg()
         }
-        addFooterSection()
     }
 }
 
 def addHeaderSection(){
-    paragraph(getFormattedText("title",state.appInfo.title))
-    paragraph(getFormattedText("description",state.appInfo.description))
+    section() {
+        paragraph(getFormattedText("title",state.appInfo.title))
+        paragraph(getFormattedText("description",state.appInfo.description))
+    }
 }
 
 def addFooterSection(){   
@@ -90,8 +90,7 @@ def boolean isInstalled(){
 }
 
 def showCompleteInstallMsg(){
-    section()
-    { 
+    section(){ 
         paragraph("Please hit 'Done' to complete the install for '${app.label}'")
     }
 }
