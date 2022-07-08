@@ -3,5 +3,9 @@
 	"version": "1.0.0",
 	"namespace": "TrevTelSolutions",
 	"title": "Timer Configuration",
-	"description": ""
+	"description": "",
+	"parentApp": {
+		"name": "Device Timer",
+		"label": ""
+	}
 }

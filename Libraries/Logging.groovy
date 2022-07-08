@@ -21,5 +21,5 @@ private logDebug(msg) {
 
 private logInfo(msg) {
     if (isInfoLogging) 
-        log.debug(msg)
+        log.info(msg)
 }

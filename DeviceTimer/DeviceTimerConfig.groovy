@@ -31,49 +31,57 @@ def updated() {
 
 private initialize() {
     logDebug("Initialize with settings: ${settings}")
-    loadSettings()
     state.deviceList = [:]
 
     subscribe(devices, "switch", onDeviceToggle)
     runEvery1Minute(scheduleHandler)
+    loadSettings()
 }
 
 def mainPage() {
-    dynamicPage(name: "mainPage") {
-        
-        section() {  
-            if(overrideLabel){ 
-                app.updateLabel(configLabel)
-            } 
-            else{
-                def dynamicLabel = timerValue + " minute " + ((whenDeviceIsTurnedOn == true) ? "off" : "on") + " timer"
-                app.updateLabel(dynamicLabel)
-                paragraph(app.label)
-            }
+    dynamicPage(name: "") {
+        loadSettings()
+        if(isInstalled()) {
 
-            input(name: "overrideLabel", type: "bool", title: "Override Configuration Name", submitOnChange: true, defaultValue: false)
-            if(overrideLabel){
-                input(name: "configLabel", type: "string", title: "Name", required: false,submitOnChange: true)       
-            } 
-            else{
-                configLabel = ""
-            }
-
-            input(name: "configuredDeviceList", type: "capability.switch", title: "When one of these devices:", required: true, multiple: true)        
-            input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
-            input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
-            paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
-            input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
-            if(overrideSwitch){
-                input(name: "isOverrideSwitchOn", type: "bool", title: "Is turned <b>" + ((isOverrideSwitchOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)            
-            }
+            //addHeaderSection()              
+            addBodySection()
+            addLoggingSection()
+            addFooterSection()
         }
-
-        section("Logging:", hideable: true, hidden: true) {
-            input(name: "isInfoLogging", type: "bool", defaultValue: "true", title: "Enable Info (descriptionText) Logging")  
-            input(name: "isDebugLogging", type: "bool", defaultValue: "false", title: "Enable Debug Logging")            
+        else{
+            showCompleteInstallMsg()
         }
     }
+}
+
+def addBodySection(){        
+    section() {  
+        if(overrideLabel){ 
+            app.updateLabel(configLabel)
+        } 
+        else{
+            def dynamicLabel = timerValue + " minute " + ((whenDeviceIsTurnedOn == true) ? "off" : "on") + " timer"
+            app.updateLabel(dynamicLabel)
+            paragraph(app.label)
+        }
+
+        input(name: "overrideLabel", type: "bool", title: "Override Configuration Name", submitOnChange: true, defaultValue: false)
+        if(overrideLabel){
+            input(name: "configLabel", type: "string", title: "Name", required: false,submitOnChange: true)       
+        } 
+        else{
+            configLabel = ""
+        }
+
+        input(name: "configuredDeviceList", type: "capability.switch", title: "When one of these devices:", required: true, multiple: true)        
+        input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
+        input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
+        paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
+        input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
+        if(overrideSwitch){
+            input(name: "isOverrideSwitchOn", type: "bool", title: "Is turned <b>" + ((isOverrideSwitchOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)            
+        }
+    }    
 }
 
 def loadSettings(){

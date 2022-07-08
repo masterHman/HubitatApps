@@ -41,12 +41,8 @@ def mainPage() {
         initialize()    
         if(isInstalled()) {
 
-            addHeaderSection()  
-            
-            section() {
-                app(name: "openApp", appName: state.appInfo.childApp.name, namespace: state.appInfo.namespace, title:"${getFormattedText("add-config", state.appInfo.childApp.label)}", multiple: true)
-            }
-
+            addHeaderSection()              
+            addBodySection()
             addLoggingSection()
             addFooterSection()
         }
@@ -56,53 +52,14 @@ def mainPage() {
     }
 }
 
-def addHeaderSection(){
+def addBodySection(){
     section() {
-        paragraph(getFormattedText("title",state.appInfo.title))
-        paragraph(getFormattedText("description",state.appInfo.description))
+        app(name: "openApp", appName: state.appInfo.childApp.name, namespace: state.appInfo.namespace, title:"${getFormattedText("add-config", state.appInfo.childApp.label)}", multiple: true)
     }
 }
 
-def addFooterSection(){   
-    addVersionSection()
-}
-
-def addVersionSection(){
-    section() {
-        paragraph(getFormattedText("version",state.appInfo.version))
-    }
-}
 
 def loadSettings(){
     getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerAppSettings.json")
 }
 
-def boolean isInstalled(){
-    state.appInstalled = app.getInstallationState() 
-    if(state.appInstalled != 'COMPLETE'){
-        logDebug( "${app.label} NOT Installed!")
-        return false
-    }
-    else{
-        logDebug( "${app.label} Installed.")
-    }
-    return true
-}
-
-def showCompleteInstallMsg(){
-    section(){ 
-        paragraph("Please hit 'Done' to complete the install for '${app.label}'")
-    }
-}
-
-def getIcon(type) {
-    if(type == "Add") return "<span class='he-add_2'></span>"
-}
-
-def getFormattedText(type, innerText="") {
-    if(type == "title") return "<h3 style='font-weight: bold'>${innerText}</h3>"
-    if(type == "description") return "<div>${innerText}</div>"
-    if(type == "add-config") return "${getIcon('Add')} ${innerText}"
-    if(type == "version") return "<div class='mdl-cell mdl-cell--12-col mdl-textfield mdl-js-textfield' style='font-size:9px'><div style='white-space:pre-wrap; text-align: left'>Version ${innerText}</div></div>"
-    return "<div>${innerText}</div>"
-}
