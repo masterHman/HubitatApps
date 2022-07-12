@@ -33,7 +33,7 @@ private initialize() {
     logDebug("Initialize with settings: ${settings}")
     state.deviceList = [:]
 
-    subscribe(devices, "switch", onDeviceToggle)
+    subscribe(configuredDeviceList, "switch", onDeviceToggle)
     runEvery1Minute(scheduleHandler)
     loadSettings()
 }
@@ -89,7 +89,7 @@ def loadSettings(){
 }
 
 def onDeviceToggle(evt) {
-    if (overrideSwitch.id == evt.device.id)
+    if (overrideSwitch && overrideSwitch.id == evt.device.id)
         return
     
     logDeviceToggle(evt)
