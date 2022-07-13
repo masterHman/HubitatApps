@@ -41,16 +41,11 @@ private initialize() {
 def mainPage() {
     dynamicPage(name: "") {
         loadSettings()
-        if(isInstalled()) {
 
-            addHeaderSection()              
-            addBodySection()
-            addLoggingSection()
-            addFooterSection()
-        }
-        else{
-            showCompleteInstallMsg()
-        }
+        addHeaderSection()              
+        addBodySection()
+        addLoggingSection()
+        addFooterSection()
     }
 }
 
@@ -60,7 +55,9 @@ def addBodySection(){
             app.updateLabel(configLabel)
         } 
         else{
-            def dynamicLabel = timerValue + " minute " + ((whenDeviceIsTurnedOn == true) ? "off" : "on") + " timer"
+            if(!timerValue)
+                timerValue = 10
+            def dynamicLabel = timerValue  + " minute " + ((whenDeviceIsTurnedOn == true) ? "off" : "on") + " timer"
             app.updateLabel(dynamicLabel)
             paragraph(app.label)
         }
@@ -74,7 +71,7 @@ def addBodySection(){
         }
 
         input(name: "configuredDeviceList", type: "capability.switch", title: "When one of these devices:", required: true, multiple: true)        
-        input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
+        input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: true, submitOnChange:true)  
         input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
         paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
         input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
@@ -148,6 +145,7 @@ private logDeviceToggle(evt){
         "${evt.value == "on"} ^ ${whenDeviceIsTurnedOn==true} = ${(evt.value == "on") ^ (whenDeviceIsTurnedOn == true)}")
 }
 
-private int getTimeOutValue(){
-    return now() + timerValue * 60 * 1000
+private long getTimeOutValue(){
+    logDebug("getTimeOutValue -> timerValue in milliseconds:${(timerValue * 60 * 1000)} " )
+    return now() + (timerValue * 60 * 1000)
 }
