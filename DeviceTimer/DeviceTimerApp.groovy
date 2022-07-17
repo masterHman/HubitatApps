@@ -58,8 +58,6 @@ def addBodySection(){
     }
 }
 
-
 def loadSettings(){
     getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerAppSettings.json")
 }
-

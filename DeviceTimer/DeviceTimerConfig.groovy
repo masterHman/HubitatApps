@@ -33,6 +33,7 @@ private initialize() {
     logDebug("Initialize with settings: ${settings}")
     state.deviceList = [:]
 
+    logDebug("configuredDeviceList: ${configuredDeviceList}")
     subscribe(configuredDeviceList, "switch", onDeviceToggle)
     runEvery1Minute(scheduleHandler)
     loadSettings()
@@ -41,11 +42,16 @@ private initialize() {
 def mainPage() {
     dynamicPage(name: "") {
         loadSettings()
+        //if(isInstalled()) {
 
-        addHeaderSection()              
-        addBodySection()
-        addLoggingSection()
-        addFooterSection()
+            addHeaderSection()              
+            addBodySection()
+            addLoggingSection()
+            addFooterSection()
+       // }
+       // else{
+       //     showCompleteInstallMsg()
+       // }
     }
 }
 
@@ -71,7 +77,7 @@ def addBodySection(){
         }
 
         input(name: "configuredDeviceList", type: "capability.switch", title: "When one of these devices:", required: true, multiple: true)        
-        input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: true, submitOnChange:true)  
+        input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
         input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
         paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
         input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
