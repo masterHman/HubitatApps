@@ -4,11 +4,11 @@ import java.text.SimpleDateFormat
 #include TrevTelSolutions.Common
 
 definition(
-    name: "Device Timer Configuration",
+    name: "Smart Switch Rule Configuration",
     namespace: "TrevTelSolutions",
     author: "Howard Roberson",
-    description: "Automatically resets devices to preferred on/off setting after specified amount of time",
-    importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerConfig.groovy",
+    description: "Add Rules to all the buttons of a switch at once.",
+    importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/SmartSwitchRules/SmartSwitchRulesConfig.groovy",
     iconUrl: "",
     iconX2Url: "",
     singleInstance: false,
@@ -88,7 +88,7 @@ def addBodySection(){
 }
 
 def loadSettings(){
-    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerConfigAppSettings.json")
+    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/SmartSwitchRules/SmartSwitchRulesConfigAppSettings.json")
 }
 
 def onDeviceToggle(evt) {

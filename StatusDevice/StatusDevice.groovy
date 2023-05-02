@@ -1,22 +1,6 @@
 #include TrevTelSolutions.Logging
 #include TrevTelSolutions.Common
 
-// definition(
-//     name: "Generic Status/Variable Driver",
-//     namespace: "TrevTelSolutions",
-//     author: "Howard Roberson",
-//     description: "Generice HE-HA-control Device for Home Assistant Device Status'",
-//     importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/StatusDevice/StatusDevice.groovy",
-//     iconUrl: "",
-//     iconX2Url: "",
-//     singleInstance: true
-// )
-
-// preferences {
-//      page(name: "mainPage", title: "", install: true, uninstall: true)
-// } 
-
-
 metadata
 {
     definition(
