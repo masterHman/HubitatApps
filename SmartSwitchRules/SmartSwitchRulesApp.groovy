@@ -2,11 +2,11 @@
 #include TrevTelSolutions.Common
 
 definition(
-    name: "Device Timer",
+    name: "Smart Switch Rules",
     namespace: "TrevTelSolutions",
     author: "Howard Roberson",
-    description: "Automatically resets devices to preferred on/off setting after specified amount of time",
-    importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerApp.groovy",
+    description: "Add Rules to all the buttons of a switch at once.",
+    importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/SmartSwitchRules/SmartSwitchRulesApp.groovy",
     iconUrl: "",
     iconX2Url: "",
     singleInstance: true
@@ -59,5 +59,5 @@ def addBodySection(){
 }
 
 def loadSettings(){
-    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/DeviceTimer/DeviceTimerAppSettings.json")
+    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/SmartSwitchRules/SmartSwitchRulesAppSettings.json")
 }
