@@ -1,55 +1,63 @@
-/*
+#include TrevTelSolutions.Logging
+#include TrevTelSolutions.Common
 
-Copyright 2021
+// definition(
+//     name: "Generic Status/Variable Driver",
+//     namespace: "TrevTelSolutions",
+//     author: "Howard Roberson",
+//     description: "Generice HE-HA-control Device for Home Assistant Device Status'",
+//     importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/StatusDevice/StatusDevice.groovy",
+//     iconUrl: "",
+//     iconX2Url: "",
+//     singleInstance: true
+// )
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+// preferences {
+//      page(name: "mainPage", title: "", install: true, uninstall: true)
+// } 
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
--------------------------------------------
-
-Change history:
-
-0.1.49 - mboisson - initial version
-0.1.52 - Yves Mercier - Add health check capability
-
-*/
 
 metadata
 {
-    definition(name: "Generic Component Unknown Sensor", namespace: "community", author: "community", importUrl: "https://raw.githubusercontent.com/ymerj/HE-HA-control/main/genericComponentUnknownSensor.groovy")
+    definition(
+        name: "Generic Component Variable", 
+        namespace: "TrevTelSolutions", 
+        author: "Howard Roberson", 
+        importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/StatusDevice/StatusDevice.groovy",
+        )
     {
         capability "Refresh"
         capability "Health Check"
         capability "Sensor"
-		capability "Relative Humidity Measurement"
+		capability "Variable"
     }
-    preferences {
-        input name: "txtEnable", type: "bool", title: "Enable descriptionText logging", defaultValue: true
+    preferences {       
+        input(name: "variableName", type: "string", title: "Variable Name", required: false, defaultValue: "")             
+        input(name: "isInfoLogging", type: "bool", defaultValue: "true", title: "Enable Info (descriptionText) Logging")  
+        input(name: "isDebugLogging", type: "bool", defaultValue: "false", title: "Enable Debug Logging")   
     }
-    attribute "value", "number"    
-    attribute "humidity", "number"
+    attribute "value", "number"   
     attribute "valueStr", "string"
     attribute "unit", "string"
     attribute "healthStatus", "enum", ["offline", "online"]
 }
 
-void updated() {
-    log.info "Updated..."
-    log.warn "description logging is: ${txtEnable == true}"
+def installed() {
+    logInfo("Installed...")
+    initialize()
 }
 
-void installed() {
-    log.info "Installed..."
-    device.updateSetting("txtEnable",[type:"bool",value:true])
+void updated() {
+    logInfo("Updated...")
+    initialize()
+}
+
+private initialize() {
+    logDebug("Initialize with settings: ${settings}")
+    
+    //https://docs2.hubitat.com/developer/interfaces/hub-variable-api
+    //Get list of variables //Map getAllGlobalVars()
+    //Save the type of variable
     refresh()
 }
 
@@ -61,15 +69,41 @@ void parse(String description) { log.warn "parse(String description) not impleme
 
 void parse(List<Map> description) {
     description.each {
-        if (it.name in ["unknown"]) {
-            if (txtEnable) log.info(it.descriptionText)
-            sendEvent(name: "healthStatus", value: it.value == "unavailable" ? "offline" : "online")
-            updateAttr("value", it.value, it.unit_of_measurement)            
-            updateAttr("humidity", it.value, it.unit_of_measurement)
+        if (it.name in ["unknown"]) {            
+            logInfo(it.descriptionText)
+            
+            updateAttr("healthStatus", getHealthStatusValue(it.value), it.unit_of_measurement)
+            updateAttr("value", it.value, it.unit_of_measurement)
             updateAttr("valueStr", it.value, it.unit_of_measurement)
             updateAttr("unit", it.unit_of_measurement)
+
+             if (variableName != ""){        
+                setVariable(it.value)
+             }
         }
     }
+}
+
+void setVariable(String value) {    
+    logDebug("Updating variable:"+variableName +" to value:" + value)
+    
+    
+    if(setGlobalVar(variableName.trim(), value) == false)
+        logError("Failed to update variable!")
+}
+
+BigDecimal AsBigDecimal(String value)
+{
+    return new BigDecimal(value);
+}
+
+Integer AsInt(String value)
+{
+    return Integer.parseInt(value);
+}
+
+String getHealthStatusValue(String value) {
+    return value == "unavailable" ? "offline" : "online";
 }
 
 void refresh() {
