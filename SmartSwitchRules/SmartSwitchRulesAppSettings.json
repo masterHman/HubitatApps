@@ -1,11 +1,11 @@
 {
-  "name": "Device Timer",
-  "version": "1.1.0",
+  "name": "Smart Switch Rules",
+  "version": "0.0.1",
   "namespace": "TrevTelSolutions",
-  "title": "Automatically resets devices to preferred on/off setting after specified amount of time.",
-  "description": "Add a new configuration for each on/off time out (e.g. 5 min off, 25 min on... etc.)",
+  "title": "Add Rules to all the buttons of a switch at once.",
+  "description": "Assign press, double press and hold for all buttons.",
   "childApp": {
-    "name": "Device Timer Configuration",
-    "label": "Create a new timer configuration"
+    "name": "Smart Switch Rule Configuration",
+    "label": "Smart Switch Rule configuration"
   }
 }

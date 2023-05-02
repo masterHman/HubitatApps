@@ -12,7 +12,7 @@ definition(
     iconUrl: "",
     iconX2Url: "",
     singleInstance: false,
-    parent: "TrevTelSolutions:Device Timer"
+    parent: "TrevTelSolutions:Smart Switch Rules"
 )
 
 preferences {

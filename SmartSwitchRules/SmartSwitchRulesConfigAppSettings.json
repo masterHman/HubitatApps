@@ -1,11 +1,11 @@
 {
-	"name": "Device Timer Configuration",
-	"version": "1.1.0",
+	"name": "Smart Switch Rule Configuration",
+	"version": "0.0.1",
 	"namespace": "TrevTelSolutions",
 	"title": "Timer Configuration",
 	"description": "",
 	"parentApp": {
-		"name": "Device Timer",
+		"name": "Smart Switch Rules",
 		"label": ""
 	}
 }
