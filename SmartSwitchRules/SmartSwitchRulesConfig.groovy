@@ -35,6 +35,7 @@ private initialize() {
 
     logDebug("configuredDeviceList: ${configuredDeviceList}")
     subscribe(configuredDeviceList, "switch", onDeviceToggle)
+    subscribe(ruleSwitch, "switch", onDeviceToggle)
     runEvery1Minute(scheduleHandler)
     loadSettings()
 }
@@ -42,16 +43,10 @@ private initialize() {
 def mainPage() {
     dynamicPage(name: "") {
         loadSettings()
-        //if(isInstalled()) {
-
-            addHeaderSection()              
-            addBodySection()
-            addLoggingSection()
-            addFooterSection()
-       // }
-       // else{
-       //     showCompleteInstallMsg()
-       // }
+        addHeaderSection()              
+        addBodySection()
+        addLoggingSection()
+        addFooterSection()       
     }
 }
 
@@ -75,15 +70,21 @@ def addBodySection(){
         else{
             configLabel = ""
         }
-
-        input(name: "configuredDeviceList", type: "capability.switch", title: "When one of these devices:", required: true, multiple: true)        
-        input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
-        input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
-        paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
-        input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
-        if(overrideSwitch){
-            input(name: "isOverrideSwitchOn", type: "bool", title: "Is turned <b>" + ((isOverrideSwitchOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)            
+        
+        input(name: "ruleSwitch", type: "capability.switch", title: "Switch:", required: true, multiple: false, submitOnChange: true)  
+        if(ruleSwitch)
+        {
+            paragraph("Device ID: <b>" + ruleSwitch.id + "</b>")) 
+            paragraph("<b>" + ruleSwitch + "</b>")) 
         }
+        //input(name: "configuredDeviceList", type: "capability.switch", title: "Switch:", required: true, multiple: true)          
+        // input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
+        // input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
+        // paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
+        // input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
+        // if(overrideSwitch){
+        //     input(name: "isOverrideSwitchOn", type: "bool", title: "Is turned <b>" + ((isOverrideSwitchOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)            
+        // }
     }    
 }
 
@@ -107,28 +108,28 @@ def onDeviceToggle(evt) {
     }    
 }
 
-def scheduleHandler() {
-    def expiredDevices = state.deviceList.findAll { it.value < now() }
-    def devicesToToggle = configuredDeviceList.findAll { device -> expiredDevices.any { it.key == device.id } }
+// def scheduleHandler() {
+//     def expiredDevices = state.deviceList.findAll { it.value < now() }
+//     def devicesToToggle = configuredDeviceList.findAll { device -> expiredDevices.any { it.key == device.id } }
 
-    logDebug("scheduleHandler now:${now()} active/state deviceList:${state.deviceList} expiredDevices:${expiredDevices} devicesToToggle:${devicesToToggle}")
+//     logDebug("scheduleHandler now:${now()} active/state deviceList:${state.deviceList} expiredDevices:${expiredDevices} devicesToToggle:${devicesToToggle}")
 
-    if(expiredDevices.isEmpty())
-        return
+//     if(expiredDevices.isEmpty())
+//         return
 
-    if (overrideSwitch){    
-        def desiredOverrideValue = getOnOffValue(isOverrideSwitchOn)
-        def overrideValue = overrideSwitch.latestValue("switch") 
+//     if (overrideSwitch){    
+//         def desiredOverrideValue = getOnOffValue(isOverrideSwitchOn)
+//         def overrideValue = overrideSwitch.latestValue("switch") 
         
-        logDebug("Override Switch: '${overrideSwitch?.displayName}' is " + overrideValue + " must be " + desiredOverrideValue)
+//         logDebug("Override Switch: '${overrideSwitch?.displayName}' is " + overrideValue + " must be " + desiredOverrideValue)
         
-        if(overrideValue == desiredOverrideValue){ 
-            toggleDevices(devicesToToggle)
-        }
-    }else {
-        toggleDevices(devicesToToggle)
-    }
-}
+//         if(overrideValue == desiredOverrideValue){ 
+//             toggleDevices(devicesToToggle)
+//         }
+//     }else {
+//         toggleDevices(devicesToToggle)
+//     }
+// }
 
 private String getOnOffValue(Boolean isSwitchOn){
     return isSwitchOn == true ? "on" : "off"
