@@ -2,7 +2,7 @@
 	"name": "Smart Switch Rule Configuration",
 	"version": "0.0.1",
 	"namespace": "TrevTelSolutions",
-	"title": "Timer Configuration",
+	"title": "Smart Switch Rule Configuration",
 	"description": "",
 	"parentApp": {
 		"name": "Smart Switch Rules",

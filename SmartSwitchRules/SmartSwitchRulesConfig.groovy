@@ -32,11 +32,10 @@ def updated() {
 private initialize() {
     logDebug("Initialize with settings: ${settings}")
     state.deviceList = [:]
-
-    logDebug("configuredDeviceList: ${configuredDeviceList}")
-    subscribe(configuredDeviceList, "switch", onDeviceToggle)
-    subscribe(ruleSwitch, "switch", onDeviceToggle)
-    runEvery1Minute(scheduleHandler)
+    state.mainSwitchValue = "on"
+    logDebug("mainSwitch: ${mainSwitch}")
+    subscribe(mainSwitch, "switch", onDeviceToggle)
+    subscribe(mainSwitch, "pushed", onDevicePress)
     loadSettings()
 }
 
@@ -55,13 +54,16 @@ def addBodySection(){
         if(overrideLabel){ 
             app.updateLabel(configLabel)
         } 
-        else{
-            if(!timerValue)
-                timerValue = 10
-            def dynamicLabel = timerValue  + " minute " + ((whenDeviceIsTurnedOn == true) ? "off" : "on") + " timer"
+        else {
+            def name = "(switch not set)"
+            if(mainSwitch){
+                name = "<b>" + mainSwitch + "</b>"
+            }
+            
+            def dynamicLabel = name + " Rule Configuration"
             app.updateLabel(dynamicLabel)
             paragraph(app.label)
-        }
+        } 
 
         input(name: "overrideLabel", type: "bool", title: "Override Configuration Name", submitOnChange: true, defaultValue: false)
         if(overrideLabel){
@@ -71,21 +73,43 @@ def addBodySection(){
             configLabel = ""
         }
         
-        input(name: "ruleSwitch", type: "capability.switch", title: "Switch:", required: true, multiple: false, submitOnChange: true)  
-        if(ruleSwitch)
-        {
-            paragraph("Device ID: <b>" + ruleSwitch.id + "</b>")) 
-            paragraph("<b>" + ruleSwitch + "</b>")) 
-        }
-        //input(name: "configuredDeviceList", type: "capability.switch", title: "Switch:", required: true, multiple: true)          
-        // input(name: "whenDeviceIsTurnedOn", type: "bool", title: "Is turned <b>" + ((whenDeviceIsTurnedOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)  
-        // input(name: "timerValue", type: "number", title: "Wait for...(in minutes)", required: true, defaultValue: 10, submitOnChange: true)            
-        // paragraph("And turn it back <b>" + ((whenDeviceIsTurnedOn == true) ? "off</b>" : "on</b>")) 
-        // input(name: "overrideSwitch", type: "capability.switch", title: "But, only if this Switch:", multiple: false, submitOnChange: true)
-        // if(overrideSwitch){
-        //     input(name: "isOverrideSwitchOn", type: "bool", title: "Is turned <b>" + ((isOverrideSwitchOn == true) ? "on</b>" : "off</b>"), defaultValue: false, submitOnChange:true)            
-        // }
+        addSwitchSelector("mainSwitch","Main Switch:",true)
+        //input(name: "mainSwitch", type: "capability.switch", title: "Main Switch:", required: true, multiple: false, submitOnChange: true, width: 4)  
+        if(mainSwitch) {
+            state.numberOfButtons = mainSwitch.currentValue("numberOfButtons")
+            state.switch = mainSwitch.currentValue("switch")
+            if(isInfoLogging){
+                paragraph("<b>Current States:</b>")
+                paragraph("numberOfButtons: <b>" + state.numberOfButtons  + "</b>")
+                paragraph("switch : <b>" + state.switch + "</b>")
+            }
+        } 
+           
     }    
+    
+    section(){
+        //section(hideable: true, hidden:true, "Single Press (Passthrough)"){
+            input(name: "applyPassthroughSwitch", type: "bool", title: "Enable Single Press (Passthrough) Switch", submitOnChange: true, defaultValue: false)
+            if(applyPassthroughSwitch){
+                addSwitchSelector("passthroughSwitch","Single Press (Passthrough) Switch", false) 
+                if(passthroughSwitch)
+                    displayDeviceInfo(passthroughSwitch)               
+            }
+        //}
+        input(name: "applyDoublePressSwitch", type: "bool", title: "Enable Double Press Switch", submitOnChange: true, defaultValue: false)
+        if(applyDoublePressSwitch){
+            input(name: "doublePressSwitch", type: "capability.switch", title: "Double Press Switch Switch:", required: false, multiple: false, submitOnChange: true)  
+            if(doublePressSwitch)
+                    displayDeviceInfo(doublePressSwitch)
+        }
+
+        input(name: "applyHeldSwitch", type: "bool", title: "Enable Held Switch", submitOnChange: true, defaultValue: false)
+        if(applyHeldSwitch){
+            input(name: "heldSwitch", type: "capability.switch", title: "Held Switch:", required: false, multiple: false, submitOnChange: true)  
+            if(heldSwitch)
+                    displayDeviceInfo(heldSwitch)
+        }
+        }    
 }
 
 def loadSettings(){
@@ -93,46 +117,52 @@ def loadSettings(){
 }
 
 def onDeviceToggle(evt) {
-    if (overrideSwitch && overrideSwitch.id == evt.device.id)
-        return
-    
+    // if (overrideSwitch && overrideSwitch.id == evt.device.id)
+    //     return
+    state.mainSwitchValue = evt.value
     logDeviceToggle(evt)
     
-    def desiredValue = getOnOffValue(whenDeviceIsTurnedOn)
-    if(evt.value == desiredValue){
-        logDebug("Device id:[${evt.device.id}] was turned [${evt.value}]. Adding to device list.")
-        state.deviceList[evt.device.id] = getTimeOutValue()
-    }else {
-        logDebug("Device id:[${evt.device.id}] was turned [${evt.value}]. Removing from device list.") 
-        state.deviceList.remove(evt.device.id)
-    }    
+     
 }
 
-// def scheduleHandler() {
-//     def expiredDevices = state.deviceList.findAll { it.value < now() }
-//     def devicesToToggle = configuredDeviceList.findAll { device -> expiredDevices.any { it.key == device.id } }
+def onDevicePress(evt)
+{
+    logInfo("onDevicePress -> Device:[${evt.device}] button [${evt.value}] was pressed.")
+    if(passthroughSwitch)
+    {
+        def desiredValue = getOnOffValue(evt.value)
+        if(state.mainSwitchValue == desiredValue){
+            logDebug("Device id:[${evt.device.id}] was turned [${evt.value}]. Adding to device list.")
+            if(desiredValue == "on")
+                passthroughSwitch.on()
+            else
+                passthroughSwitch.off()
+        }
+    }
+}
 
-//     logDebug("scheduleHandler now:${now()} active/state deviceList:${state.deviceList} expiredDevices:${expiredDevices} devicesToToggle:${devicesToToggle}")
+private addSwitchSelector(name,label,required){
+    input(name: name, type: "capability.switch", title: label, required: required, multiple: false, submitOnChange: true, width: 4)  
+}
 
-//     if(expiredDevices.isEmpty())
-//         return
+private displayDeviceInfo(device){
+    if(isInfoLogging){
+        paragraph("<b>Current States:</b>")
+        paragraph("numberOfButtons: <b>" + getNumberOfButtons(device)  + "</b>")
+        paragraph("switch : <b>" + getSwitchStatus(device) + "</b>")
+    }
+}
 
-//     if (overrideSwitch){    
-//         def desiredOverrideValue = getOnOffValue(isOverrideSwitchOn)
-//         def overrideValue = overrideSwitch.latestValue("switch") 
-        
-//         logDebug("Override Switch: '${overrideSwitch?.displayName}' is " + overrideValue + " must be " + desiredOverrideValue)
-        
-//         if(overrideValue == desiredOverrideValue){ 
-//             toggleDevices(devicesToToggle)
-//         }
-//     }else {
-//         toggleDevices(devicesToToggle)
-//     }
-// }
+private String getNumberOfButtons(device){
+    return device.currentValue("numberOfButtons")
+}
 
-private String getOnOffValue(Boolean isSwitchOn){
-    return isSwitchOn == true ? "on" : "off"
+private String getSwitchStatus(device){
+    return device.currentValue("switch")
+}
+
+private String getOnOffValue(String buttonNumber){
+    return buttonNumber == "1" ? "on" : "off"
 }
 
 private toggleDevices(devicesToToggle){
@@ -147,7 +177,7 @@ private toggleDevices(devicesToToggle){
 }
 
 private logDeviceToggle(evt){    
-    logInfo("onDeviceToggle -> Device:[${evt.device}] was turned [${evt.value}] will start timer if the device was turned [" + ((whenDeviceIsTurnedOn == true) ? "on" : "off") + "]")       
+    logInfo("onDeviceToggle -> Device:[${evt.device}] was turned [${evt.value}]")       
     logDebug("onDeviceToggle -> now:${now()} evt.device:${evt.device}, evt.value:${evt.value}, state:${state}, " +
         "${evt.value == "on"} ^ ${whenDeviceIsTurnedOn==true} = ${(evt.value == "on") ^ (whenDeviceIsTurnedOn == true)}")
 }
