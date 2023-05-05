@@ -36,6 +36,8 @@ private initialize() {
     logDebug("mainSwitch: ${mainSwitch}")
     subscribe(mainSwitch, "switch", onDeviceToggle)
     subscribe(mainSwitch, "pushed", onDevicePress)
+    subscribe(mainSwitch, "held", onDevicePress)
+    subscribe(mainSwitch, "doubleTapped", onDevicePress)
     loadSettings()
 }
 
@@ -73,6 +75,8 @@ def addBodySection(){
             configLabel = ""
         }
         
+        input(name: "isPhysicalRequired", type: "bool", title: "Physical Actions Only", submitOnChange: true, defaultValue: true)
+
         addSwitchSelector("mainSwitch","Main Switch:",true)
         //input(name: "mainSwitch", type: "capability.switch", title: "Main Switch:", required: true, multiple: false, submitOnChange: true, width: 4)  
         if(mainSwitch) {
@@ -98,16 +102,16 @@ def addBodySection(){
         //}
         input(name: "applyDoublePressSwitch", type: "bool", title: "Enable Double Press Switch", submitOnChange: true, defaultValue: false)
         if(applyDoublePressSwitch){
-            input(name: "doublePressSwitch", type: "capability.switch", title: "Double Press Switch Switch:", required: false, multiple: false, submitOnChange: true)  
+            addSwitchSelector("doublePressSwitch","Double Press Switch Switch", false)  
             if(doublePressSwitch)
-                    displayDeviceInfo(doublePressSwitch)
+                displayDeviceInfo(doublePressSwitch)
         }
 
         input(name: "applyHeldSwitch", type: "bool", title: "Enable Held Switch", submitOnChange: true, defaultValue: false)
         if(applyHeldSwitch){
-            input(name: "heldSwitch", type: "capability.switch", title: "Held Switch:", required: false, multiple: false, submitOnChange: true)  
+            addSwitchSelector("heldSwitch","Held Switch:", false)  
             if(heldSwitch)
-                    displayDeviceInfo(heldSwitch)
+                displayDeviceInfo(heldSwitch)
         }
         }    
 }
@@ -117,27 +121,53 @@ def loadSettings(){
 }
 
 def onDeviceToggle(evt) {
-    // if (overrideSwitch && overrideSwitch.id == evt.device.id)
-    //     return
     state.mainSwitchValue = evt.value
     logDeviceToggle(evt)
-    
-     
 }
 
 def onDevicePress(evt)
-{
-    logInfo("onDevicePress -> Device:[${evt.device}] button [${evt.value}] was pressed.")
+{  
+    logInfo("${evt.descriptionText}")    
+    
+    logDebug("onDevicePress -> <br/> evt.descriptionText:[${evt.descriptionText}] <br/> evt.displayed:[${evt.displayed}] <br/> evt.name:[${evt.name}]")    
+
+    if(isPhysicalRequired && evt.isDigital())
+    {
+        logInfo("Digital Button press detected skipping -> evt.isDigital()=[${evt.isDigital()}]") 
+        return
+    }
+    def desiredValue = getOnOffValue(evt.value)
+
+    if(evt.name == "pushed")
+        togglePassthroughDevice(passthroughSwitch, desiredValue)
+    if(evt.name == "doubleTapped")
+        toggleDevice(doublePressSwitch, desiredValue)
+    if(evt.name == "held")
+        toggleDevice(heldSwitch, desiredValue)
+
+}
+
+def togglePassthroughDevice(passthroughSwitch, desiredValue){
     if(passthroughSwitch)
     {
-        def desiredValue = getOnOffValue(evt.value)
+        logDebug("togglePassthroughDevice =><br/> [${passthroughSwitch}]")
         if(state.mainSwitchValue == desiredValue){
-            logDebug("Device id:[${evt.device.id}] was turned [${evt.value}]. Adding to device list.")
             if(desiredValue == "on")
                 passthroughSwitch.on()
             else
                 passthroughSwitch.off()
         }
+    }   
+}
+
+def toggleDevice(device, desiredValue){
+    if(device)
+    {
+        logDebug("toggleDevice =><br/> [${device}]")
+        if(desiredValue == "on")
+            device.on()
+        else
+            device.off()        
     }
 }
 
