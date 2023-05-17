@@ -113,7 +113,8 @@ def addBodySection(){
             if(heldSwitch)
                 displayDeviceInfo(heldSwitch)
         }
-        }    
+        
+    }    
 }
 
 def loadSettings(){
