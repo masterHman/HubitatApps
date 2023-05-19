@@ -40,7 +40,6 @@ def mainPage() {
     dynamicPage(name: "") {
         initialize()    
         if(isInstalled()) {
-
             addHeaderSection()              
             addBodySection()
             addLoggingSection()

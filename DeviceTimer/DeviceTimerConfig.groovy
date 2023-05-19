@@ -42,16 +42,10 @@ private initialize() {
 def mainPage() {
     dynamicPage(name: "") {
         loadSettings()
-        //if(isInstalled()) {
-
-            addHeaderSection()              
-            addBodySection()
-            addLoggingSection()
-            addFooterSection()
-       // }
-       // else{
-       //     showCompleteInstallMsg()
-       // }
+        addHeaderSection()              
+        addBodySection()
+        addLoggingSection()
+        addFooterSection()
     }
 }
 
