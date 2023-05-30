@@ -4,10 +4,10 @@
 metadata
 {
     definition(
-        name: "Generic Component Variable", 
+        name: "Home Assistant Debug Device",
         namespace: "TrevTelSolutions", 
         author: "Howard Roberson", 
-        importUrl: "https://raw.githubusercontent.com/masterHman/HubitatApps/main/StatusDevice/StatusDevice.groovy",
+        importUrl: "",
         )
     {
         capability "Refresh"

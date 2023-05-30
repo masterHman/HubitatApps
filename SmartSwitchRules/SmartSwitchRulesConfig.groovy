@@ -65,7 +65,7 @@ def addBodySection(){
         if(mainSwitch) {
             state.numberOfButtons = mainSwitch.currentValue("numberOfButtons")
             state.switch = mainSwitch.currentValue("switch")
-            if(isInfoLogging){
+            if(isDebugLogging){
                 paragraph("<b>Current States:</b>")
                 paragraph("numberOfButtons: <b>" + state.numberOfButtons  + "</b>")
                 paragraph("switch : <b>" + state.switch + "</b>")
@@ -104,7 +104,7 @@ def addLabelOverrideSection(){
         else {
             def dynamicLabel = "(switch not set)"
             if(mainSwitch){
-                dynamicLabel = "<b>${mainSwitch}</b> Rule Configuration"
+                dynamicLabel = "<b>${mainSwitch}</b> Configuration"
             }            
             app.updateLabel(dynamicLabel)
             paragraph(app.label)
@@ -168,7 +168,7 @@ private addSwitchSelector(name,label,required,allowMultiple = true){
 }
 
 private displayDeviceInfo(devices){
-    if(isInfoLogging){
+    if(isDebugLogging){
         paragraph("<b>Current States:</b>")
         for (device in devices) {            
             paragraph("Name:     <b>${device.name}</b>")
