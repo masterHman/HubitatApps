@@ -50,19 +50,8 @@ void parse(List<Map> description) {
             logInfo(it.descriptionText)
             
             updateAttr("healthStatus", getHealthStatusValue(it.value), it.unit_of_measurement)
-
-             if (variableName != ""){        
-                setVariable(it.value)
-             }
         }
     }
-}
-
-void setVariable(String value) {    
-    logDebug("Updating variable:"+variableName +" to value:" + value)    
-    
-    if(setGlobalVar(variableName.trim(), value) == false)
-        logError("Failed to update variable!")
 }
 
 String getHealthStatusValue(String value) {

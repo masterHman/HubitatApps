@@ -12,16 +12,11 @@ metadata
     {
         capability "Refresh"
         capability "Health Check"
+        capability "Switch"  
     }
-    preferences {       
-        input(name: "variableName", type: "string", title: "Variable Name", required: false, defaultValue: "")             
-        input(name: "isInfoLogging", type: "bool", defaultValue: "true", title: "Enable Info (descriptionText) Logging")  
-        input(name: "isDebugLogging", type: "bool", defaultValue: "false", title: "Enable Debug Logging")   
+    preferences {               
+        addLoggingSection()
     }
-    attribute "value", "number"   
-    attribute "valueStr", "string"
-    attribute "unit", "string"
-    attribute "healthStatus", "enum", ["offline", "online"]
 }
 
 def installed() {
@@ -36,15 +31,7 @@ void updated() {
 
 private initialize() {
     logDebug("Initialize with settings: ${settings}")
-    
-    //https://docs2.hubitat.com/developer/interfaces/hub-variable-api
-    //Get list of variables //Map getAllGlobalVars()
-    //Save the type of variable
     refresh()
-}
-
-void updateAttr(String aKey, aValue, String aUnit = ""){
-    sendEvent(name:aKey, value:aValue, unit:aUnit)
 }
 
 void parse(String description) { log.warn "parse(String description) not implemented" }
@@ -67,8 +54,7 @@ void parse(List<Map> description) {
 }
 
 void setVariable(String value) {    
-    logDebug("Updating variable:"+variableName +" to value:" + value)
-    
+    logDebug("Updating variable:"+variableName +" to value:" + value)    
     
     if(setGlobalVar(variableName.trim(), value) == false)
         logError("Failed to update variable!")
