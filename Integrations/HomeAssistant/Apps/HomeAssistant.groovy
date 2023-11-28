@@ -1,43 +1,15 @@
-/*
-* Home Assistant to Hubitat Integration
-*
-* Description:
-* Allow control of HA devices.
-*
-* Required Information:
-* Home Asisstant IP and Port number
-* Home Assistant long term Access Token
-*
-* Features List:
-*
-* Licensing:
-* Copyright 2021 tomw
-* Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
-* in compliance with the License. You may obtain a copy of the License at: http://www.apache.org/licenses/LICENSE-2.0
-* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
-* on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
-* for the specific language governing permissions and limitations under the License.
-*
-* Version Control:
-* 0.1.22     2021-02-24 tomw               Optional configuration app to selectively filter out Home Assistant devices
-* 0.1.23     2021-02-25 Dan Ogorchock      Switched logic from Exclude to Include to make more intuitive.  Sorted Device List.
-* 0.1.32     2021-09-27 kaimyn             Add option to use HTTPS support in configuration app
-* 0.1.45     2022-06-06 tomw               Added confirmation step before completing select/de-select all
-* 0.1.46     2022-07-04 tomw               Advanced configuration - manual add/remove of devices; option to disable filtering; unused child cleanup
-* 0.1.52     2023-02-02 tomw               UI improvements for app usability
-* 0.1.53     2023-02-19 tomw               Allow multiple instances of HADB app to be installed
-*/
-
 #include HomeAssistantBridge.Logging
 #include HomeAssistantBridge.Common
 
+import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
 
 definition(
-    name: "Home Assistant Device Bridge",
-    namespace: "tomw",
-    author: "tomw",
+    name: "Home Assistant",
+    namespace: "TrevTelSolutions",
+    author: "Howard Roberson",
     description: "",
-    category: "Convenience",
+    category: "Integration",
     iconUrl: "",
     iconX2Url: "",
     iconX3Url: "")
@@ -53,11 +25,12 @@ def mainPage()
 {
     dynamicPage(name: "mainPage", title: "", install: true, uninstall: true)
     {
-        section("<b>Home Assistant Device Bridge</b>")
+        section("<b>Home Assistant Information:</b>")
         {
-            input ("ip", "text", title: "Home Assistant IP Address", description: "HomeAssistant IP Address", required: true)
-            input ("port", "text", title: "Home Assistant Port", description: "HomeAssistant Port Number", required: true, defaultValue: "8123")
-            input ("token", "text", title: "Home Assistant Long-Lived Access Token", description: "HomeAssistant Access Token", required: true)
+            input ("ip", "text", title: "IP Address", description: "Home Assistant IP Address", required: true)
+            input ("port", "text", title: "Port", description: "Home Assistant Port Number", required: true, defaultValue: "8123")
+            input ("token", "text", title: "Long-Lived Access Token", description: "Home Assistant Access Token", required: true)
+            input ("template", "text", title: "Template", description: "Home Assistant Template to filter devices.", required: true)
             input (name: "secure", type: "bool", title: "Require secure connection", defaultValue: false, required: true)
             input (name: "ignoreSSLIssues", type: "bool", title: "Ignore SSL Issues", defaultValue: false, required: true)        
         }
@@ -85,32 +58,69 @@ def discoveryPage(params)
 {
     dynamicPage(name: "discoveryPage", title: "", install: true, uninstall: true)
     {
+        state.validEntityTypes = [
+                        "fan", 
+                        "switch", 
+                        "light", 
+                        "binary_sensor",
+                        "button", 
+                         "device_tracker", 
+                         "cover", 
+                         "lock", 
+                         "climate", 
+                         "input_boolean",
+                          "sensor"
+                          ]
+            logDebug(state.validEntityTypes)
+
         if(params?.runDiscovery)
         {
-            state.entityList = [:]
-            def domain
-            // query HA to get entity_id list
-            def resp = httpGetExec(genParamsMain("states"))
-            logDebug("states response = ${resp?.data}")
+            state.entityList = [:]            
+            // state.domainList = [
+            //     "fan":[:], 
+            //     "switch":[:], 
+            //     "light":[:],
+            //     "binary_sensor":[:], 
+            //     "sensor":[:], 
+            //     "device_tracker":[:], 
+            //     "cover":[:], 
+            //     "lock":[:],
+            //     "climate":[:],
+            //     "input_boolean":[:],
+            //     "button":[:]
+            //     ]
+
+            // def domain
+            def resp = httpPostExec(genParamsMain("template", getTemplateBody()))
+            logDebug("resp: ${resp}")
 
             if(resp?.data)
             {
+               logDebug("data size: ${resp.data.getText()}")
+               // logDebug("resp.data: ${resp.data}")
                 resp.data.each
                 {
                     domain = it.entity_id?.tokenize(".")?.getAt(0)
-                    if(["fan", "switch", "light", "binary_sensor", "sensor", "device_tracker", "cover", "lock", "climate", "input_boolean", "button"].contains(domain))
+                    logDebug(domain)
+                    if(state.validEntityTypes.contains(domain))
                     {
+                        //state.domainList[domain].put(it.entity_id, "${it.attributes?.friendly_name} (${it.entity_id})")
                         state.entityList.put(it.entity_id, "${it.attributes?.friendly_name} (${it.entity_id})")
+                        logDebug(state.entityList[it.entity_id])
                     }
                 }
 
                 state.entityList = state.entityList.sort { it.value }
             }
+            else 
+            {                
+               logDebug("resp was... null? ${resp}")
+            }
         }
         
         section
         {
-            input name: "includeList", type: "enum", title: "Select any devices to <b>include</b> from Home Assistant Device Bridge", options: state.entityList, required: false, multiple: true, offerAll: true
+            input(name: "includeList", type: "enum", title: "Select any devices to <b>include</b> from Home Assistant Device Bridge", options: state.entityList, required: false, multiple: true, offerAll: true)
         }
         
         linkToMain()
@@ -292,6 +302,14 @@ def clearButtonPushed()
     state.remove("button")
 }
 
+def getTemplateBody()
+{ 
+    def templateValue = '{"template": "' + "${template}" + '"}'
+    logDebug("templateValue: ${templateValue}")
+    
+    return templateValue
+}
+
 def genParamsMain(suffix, body = null)
 {
     def url = getBaseURI() + suffix
@@ -342,6 +360,36 @@ def httpGetExec(params, throwToCaller = false)
     {
         logDebug("httpGetExec() failed: ${e.message}")
         //logDebug("status = ${e.getResponse().getStatus().toInteger()}")
+        if(throwToCaller)
+        {
+            throw(e)
+        }
+    }
+}
+
+def httpPostExec(params, throwToCaller = false)
+{
+    logDebug("httpPostExec(${params})")
+    
+    try
+    {
+        def result
+        httpPost(params)
+        { response ->
+            if (response.status == 200)
+            {
+                logDebug("Success! response.data = ${response.data}")
+                result = response.data
+            }
+            else{
+                log.error("Status Code: ${response.status}")
+            }
+        }
+        return result
+    }
+    catch (Exception e)
+    {
+        logDebug("httpPostExec() failed: ${e.message}")
         if(throwToCaller)
         {
             throw(e)
