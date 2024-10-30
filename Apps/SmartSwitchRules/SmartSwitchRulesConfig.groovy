@@ -152,27 +152,30 @@ def onDevicePress(evt)
 
 def togglePassthroughDevice(passthroughSwitch, desiredValue){
     if(passthroughSwitch){
-        if(state.switch == desiredValue && getCanPassThrough(mainSwitch, desiredValue)){
+        if(state.switch == desiredValue && getCanPassthrough(mainSwitch, desiredValue)){
             toggleDevices(passthroughSwitch, desiredValue)
         }
     }   
 }
 
-def getCanPassThrough(device, desiredValue) {
+def getCanPassthrough(device, desiredValue) {
+    def passthroughDelay = 30
     Calendar calendar = Calendar.getInstance()
+    calendar.add(Calendar.SECOND, -1 * passthroughDelay)
 
-    // Subtract one minute from the calendar
-    calendar.add(Calendar.MINUTE, -1)
-
-    // Get the date object from the calendar
-    Date oneMinuteAgo = calendar.time
-    
-    //def oneMinuteAgo = new Date() - 1/1440 // 1 minute in terms of days
-    def events = device.eventsSince(oneMinuteAgo)
+    def events = device.eventsSince(calendar.time)
     
     logDebug("Events: ${events}")
-    def onEvent = events.find { it.name == 'switch' && it.value == desiredValue }
-    return onEvent ? false : true
+    def evt = events.find { it.name == 'switch' && it.value == desiredValue }
+
+    if(evt)
+    {
+        logInfo("Device: ${device} was toggled less than ${passthroughDelay} seconds ago, skipping passthrough toggle.") 
+        logDebug("onDevicePress -> <br/> evt.descriptionText:[${evt.descriptionText}] <br/> evt.displayed:[${evt.displayed}] <br/> evt.name:[${evt.name}]")    
+        return false
+    }
+
+    return true
 }
 
 def toggleDevice(device, desiredValue){
