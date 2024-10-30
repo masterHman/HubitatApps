@@ -1,5 +1,6 @@
 
 import java.text.SimpleDateFormat
+import java.util.Calendar
 #include TrevTelSolutions.Logging
 #include TrevTelSolutions.Common
 
@@ -104,7 +105,7 @@ def addLabelOverrideSection(){
         else {
             def dynamicLabel = "(switch not set)"
             if(mainSwitch){
-                dynamicLabel = "<b>${mainSwitch}</b> Configuration"
+                dynamicLabel = "<b>${mainSwitch}</b> Multifunction Configuration"
             }            
             app.updateLabel(dynamicLabel)
             paragraph(app.label)
@@ -120,7 +121,7 @@ def addLabelOverrideSection(){
 }
 
 def loadSettings(){
-    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/SmartSwitchRules/SmartSwitchRulesConfigAppSettings.json")
+    getAppInfoFromUri("https://raw.githubusercontent.com/masterHman/HubitatApps/main/Apps/SmartSwitchRules/SmartSwitchRulesConfigAppSettings.json")
 }
 
 def onDeviceToggle(evt) {
@@ -151,10 +152,27 @@ def onDevicePress(evt)
 
 def togglePassthroughDevice(passthroughSwitch, desiredValue){
     if(passthroughSwitch){
-        if(state.switch == desiredValue){
+        if(state.switch == desiredValue && getCanPassThrough(mainSwitch, desiredValue)){
             toggleDevices(passthroughSwitch, desiredValue)
         }
     }   
+}
+
+def getCanPassThrough(device, desiredValue) {
+    Calendar calendar = Calendar.getInstance()
+
+    // Subtract one minute from the calendar
+    calendar.add(Calendar.MINUTE, -1)
+
+    // Get the date object from the calendar
+    Date oneMinuteAgo = calendar.time
+    
+    //def oneMinuteAgo = new Date() - 1/1440 // 1 minute in terms of days
+    def events = device.eventsSince(oneMinuteAgo)
+    
+    logDebug("Events: ${events}")
+    def onEvent = events.find { it.name == 'switch' && it.value == desiredValue }
+    return onEvent ? false : true
 }
 
 def toggleDevice(device, desiredValue){
