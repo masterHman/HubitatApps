@@ -30,7 +30,7 @@ def mainPage()
             input ("ip", "text", title: "IP Address", description: "Home Assistant IP Address", required: true)
             input ("port", "text", title: "Port", description: "Home Assistant Port Number", required: true, defaultValue: "8123")
             input ("token", "text", title: "Long-Lived Access Token", description: "Home Assistant Access Token", required: true)
-            input ("template", "text", title: "Template", description: "Home Assistant Template to filter devices.", required: true)
+            input ("template", "textarea", title: "Template", description: "Home Assistant Template to filter devices.", required: true, rows: 10)
             input (name: "secure", type: "bool", title: "Require secure connection", defaultValue: false, required: true)
             input (name: "ignoreSSLIssues", type: "bool", title: "Ignore SSL Issues", defaultValue: false, required: true)        
         }
@@ -91,18 +91,18 @@ def discoveryPage(params)
             //     ]
 
             // def domain
-            def resp = httpPostExec(genParamsMain("template", getTemplateBody()))
-            logDebug("resp: ${resp}")
+            //def resp = httpPostExec(genParamsMain("template", getTemplateBody()))
+            def resp = httpGetExec(genParamsMain("states"))
+            //logDebug("http response: ${resp}")
+            //logDebug("httpPostExec result.data: ${resp.data}")
 
             if(resp?.data)
             {
-               logDebug("data size: ${resp.data.getText()}")
-               // logDebug("resp.data: ${resp.data}")
+                //logDebug("resp.data: ${resp.data}")
                 resp.data.each
                 {
-                    domain = it.entity_id?.tokenize(".")?.getAt(0)
-                    logDebug(domain)
-                    if(state.validEntityTypes.contains(domain))
+                    domain = it.entity_id?.tokenize(".")?.getAt(0)                    
+                    if(state.validEntityTypes.contains(domain) && isValidEntity(it.entity_id))
                     {
                         //state.domainList[domain].put(it.entity_id, "${it.attributes?.friendly_name} (${it.entity_id})")
                         state.entityList.put(it.entity_id, "${it.attributes?.friendly_name} (${it.entity_id})")
@@ -137,6 +137,19 @@ def checkIfFiltered(entity)
     return false
 }
 
+def isValidEntity(entity)
+{
+    logDebug("entity: ${entity}")
+    if(manualOnly || (null == manualOnly))
+    {
+       logDebug("Allowing entity: ${entity} ") 
+        return shouldFilter(entity)
+    }
+    
+    logDebug("Denying entity: ${entity} ") 
+    return false
+}
+
 def shouldFilter(entity)
 {
     return !(includeList?.contains(entity) || accessCustomFilter("get")?.contains(entity))    
@@ -160,17 +173,17 @@ def cullGrandchildren()
 
 def accessCustomFilter(op, val = null)
 {
-    if(!["add", "del", "clear", "get"].contains(op))
-    {
-        return
-    }
+    if(["add", "del", "clear", "get"].contains(op) == false) return
     
     def list = state.customFilterList ?: []
     
     switch(op)
     {
         case "add":
-            !list.contains(val.toString()) ? ((val?.toString()) ? list.add(val.toString()) : null) : null
+            if(val?.toString() != null && list.contains(val.toString()) == false)
+            {
+                list.add(val.toString())
+            }
             break
         case "del":
             list.remove(val.toString())
@@ -184,6 +197,7 @@ def accessCustomFilter(op, val = null)
     }
     
     state.customFilterList = list
+    state.customFilterListCount = list.size()
 }
 
 def advOptionsPage()
@@ -192,7 +206,17 @@ def advOptionsPage()
     {
         if(wasButtonPushed("clickToAdd"))
         {
-            accessCustomFilter("add", eId)
+            if(eId.contains(","))
+            {
+                def list = eId.replace("\"","") .split(",")
+                list.each
+                {                    
+                    accessCustomFilter("add", it)
+                }
+            }
+            else
+                accessCustomFilter("add", eId)
+            
             clearButtonPushed()
         }
         
@@ -218,11 +242,13 @@ def advOptionsPage()
         section(hideable: true, hidden: false, title: "Entity filtering options")
         {
             input("enableFiltering", "bool", title: "Only pass through user-selected and manually-added entities? (disable this option to pass all through)<br><br>", defaultValue: true, submitOnChange: true)
+            
         }
         
         section(hideable: true, hidden: false, title: "Manually add an entity to be included")
         {
             paragraph "<b>Manually added entities:</b> ${accessCustomFilter("get")}"
+            input("manualOnly", "bool", title: "Manual Only", defaultValue: true, submitOnChange: true)
             input name: "eId", type: "text", title: "Entity ID", description: "ID"
             input(name: "clickToAdd", type: "button", title: "Add entity to list", width:2)
             input(name: "clickToRemove", type: "button", title: "Remove entity from list", width:2)
@@ -329,6 +355,7 @@ def genParamsMain(suffix, body = null)
     {
         params['body'] = body
     }
+    logDebug("HomeAssistant URL: ${params}")
  
     return params
 }
@@ -359,7 +386,6 @@ def httpGetExec(params, throwToCaller = false)
     catch (Exception e)
     {
         logDebug("httpGetExec() failed: ${e.message}")
-        //logDebug("status = ${e.getResponse().getStatus().toInteger()}")
         if(throwToCaller)
         {
             throw(e)
@@ -374,17 +400,19 @@ def httpPostExec(params, throwToCaller = false)
     try
     {
         def result
+        def data
         httpPost(params)
         { response ->
             if (response.status == 200)
-            {
-                logDebug("Success! response.data = ${response.data}")
-                result = response.data
+            {               
+                result = response                
+                logDebug("httpPostExec result= ${params}")
             }
             else{
                 log.error("Status Code: ${response.status}")
             }
         }
+        
         return result
     }
     catch (Exception e)
